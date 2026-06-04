@@ -28,7 +28,7 @@
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   }
   .header p { color: rgba(255,255,255,0.5); font-size: 13px; }
-  .nav { display: flex; gap: 8px; margin-bottom: 20px; justify-content: center; }
+  .nav { display: flex; gap: 8px; margin-bottom: 20px; justify-content: center; flex-wrap: wrap; }
   .nav button {
     padding: 8px 16px; border-radius: 20px; border: none; cursor: pointer;
     font-size: 13px; font-weight: 600; transition: all 0.2s;
@@ -43,17 +43,19 @@
     border: 1px solid rgba(255,255,255,0.08);
   }
   .card-gold { border-color: rgba(255,215,0,0.2); }
-  .game-meta { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
-  .game-teams { display: flex; align-items: center; gap: 12px; font-size: 18px; font-weight: 700; }
+  .game-meta { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px; }
+  .game-teams { display: flex; align-items: center; gap: 12px; font-size: 17px; font-weight: 700; flex-wrap: wrap; }
   .result-badge {
     background: linear-gradient(135deg, #FFD700, #FFA500);
     color: #000; font-weight: 800; border-radius: 8px; padding: 2px 10px; font-size: 14px;
   }
-  .deadline-badge {
-    font-size: 11px; padding: 2px 8px; border-radius: 6px; font-weight: 700;
-  }
+  .deadline-badge { font-size: 11px; padding: 2px 8px; border-radius: 6px; font-weight: 700; }
   .deadline-open { background: rgba(39,174,96,0.2); color: #2ecc71; }
   .deadline-closed { background: rgba(192,57,43,0.2); color: #e74c3c; }
+  .phase-label {
+    font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+    color: #FFD700; margin: 20px 0 8px; opacity: 0.7;
+  }
   input[type=text], input[type=password] {
     width: 100%; padding: 14px 18px; border-radius: 12px;
     border: 2px solid rgba(255,215,0,0.3);
@@ -84,6 +86,7 @@
   .tip-sep { text-align: center; min-width: 40px; }
   .tendency { font-size: 10px; color: #FFD700; font-weight: 700; background: rgba(255,215,0,0.1); border-radius: 6px; padding: 2px 6px; margin-top: 4px; }
   .locked-msg { text-align: center; color: #e74c3c; font-size: 13px; padding: 10px; background: rgba(192,57,43,0.1); border-radius: 8px; margin-top: 8px; }
+  .hidden-msg { text-align: center; color: rgba(255,255,255,0.4); font-size: 12px; padding: 6px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-top: 4px; }
   .board-row {
     background: rgba(255,255,255,0.04); border-radius: 16px;
     padding: 16px 18px; margin-bottom: 10px;
@@ -97,20 +100,17 @@
   .board-rank { font-size: 24px; min-width: 36px; text-align: center; }
   .board-name { font-weight: 700; font-size: 16px; margin-bottom: 6px; }
   .board-tips { display: flex; gap: 6px; flex-wrap: wrap; }
-  .tip-chip {
-    font-size: 11px; padding: 3px 8px; border-radius: 6px;
-    background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.4);
-  }
+  .tip-chip { font-size: 11px; padding: 3px 8px; border-radius: 6px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.4); }
   .tip-chip.pts3 { background: rgba(39,174,96,0.3); color: #2ecc71; }
   .tip-chip.pts1 { background: rgba(255,165,0,0.3); color: #FFA500; }
   .tip-chip.pts0 { background: rgba(192,57,43,0.3); color: #e74c3c; }
+  .tip-chip.hidden { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.2); font-style: italic; }
   .board-pts { font-size: 28px; font-weight: 900; }
   .toast {
     position: fixed; top: 24px; left: 50%; transform: translateX(-50%);
     padding: 12px 28px; border-radius: 50px;
     font-weight: 700; font-size: 15px; z-index: 999;
     box-shadow: 0 4px 24px rgba(0,0,0,0.4);
-    transition: opacity 0.3s;
   }
   .toast.success { background: #27ae60; color: #fff; }
   .toast.error { background: #c0392b; color: #fff; }
@@ -125,7 +125,7 @@
   <div class="header">
     <div class="emoji">🏆</div>
     <h1>WM Tippspiel 2026</h1>
-    <p>Nur für die DFB-Spiele 🇩🇪</p>
+    <p>DFB-Spiele 🇩🇪 • Nur für die Familie</p>
   </div>
 
   <div class="nav" id="nav" style="display:none">
@@ -156,7 +156,8 @@
 
   <!-- LEADERBOARD -->
   <div id="screen-leaderboard" class="screen">
-    <h2 style="text-align:center;margin-bottom:20px;font-size:22px">🏆 Rangliste</h2>
+    <h2 style="text-align:center;margin-bottom:4px;font-size:22px">🏆 Rangliste</h2>
+    <p style="text-align:center;color:rgba(255,255,255,0.4);font-size:12px;margin-bottom:16px">Tipps anderer sind erst nach Spielstart sichtbar 🔒</p>
     <div id="board-content"><div class="loading">Lade Daten...</div></div>
     <button class="btn" onclick="showScreen('home')" style="margin-top:12px">✏️ Tipps abgeben</button>
   </div>
@@ -189,21 +190,25 @@ const ADMIN_PW = 'dfb2026';
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// =====================
+// SPIELE KONFIGURATION
+// Gruppenphase
+// Für KO-Runde einfach neue Einträge ergänzen!
+// =====================
 const GAMES = [
-  { id: 1, date: '14.06.2026', time: '19:00', home: 'Deutschland', away: 'Curaçao', hf: '🇩🇪', af: '🇨🇼', venue: 'Houston',
-    deadline: new Date('2026-06-14T16:50:00Z') },
-  { id: 2, date: '20.06.2026', time: '22:00', home: 'Deutschland', away: 'Elfenbeinküste', hf: '🇩🇪', af: '🇨🇮', venue: 'Toronto',
-    deadline: new Date('2026-06-20T19:50:00Z') },
-  { id: 3, date: '25.06.2026', time: '22:00', home: 'Deutschland', away: 'Ecuador', hf: '🇩🇪', af: '🇪🇨', venue: 'New Jersey',
-    deadline: new Date('2026-06-25T19:50:00Z') },
+  // --- GRUPPENPHASE ---
+  { id: 1, phase: 'Gruppenphase', date: '14.06.2026', time: '19:00', home: 'Deutschland', away: 'Curaçao',       hf: '🇩🇪', af: '🇨🇼', venue: 'Houston',    deadline: new Date('2026-06-14T16:50:00Z') },
+  { id: 2, phase: 'Gruppenphase', date: '20.06.2026', time: '22:00', home: 'Deutschland', away: 'Elfenbeinküste',hf: '🇩🇪', af: '🇨🇮', venue: 'Toronto',    deadline: new Date('2026-06-20T19:50:00Z') },
+  { id: 3, phase: 'Gruppenphase', date: '25.06.2026', time: '22:00', home: 'Deutschland', away: 'Ecuador',       hf: '🇩🇪', af: '🇪🇨', venue: 'New Jersey', deadline: new Date('2026-06-25T19:50:00Z') },
+  // --- KO-RUNDE wird hier ergänzt, z.B.: ---
+  // { id: 4, phase: 'Achtelfinale', date: '29.06.2026', time: '21:00', home: 'Deutschland', away: 'Gegner', hf: '🇩🇪', af: '🏳️', venue: 'Boston', deadline: new Date('2026-06-29T18:50:00Z') },
 ];
 
 let currentPlayer = '';
 let currentTips = {};
-let allResults = {};
-let allTips = [];
 
 function isLocked(game) { return new Date() > game.deadline; }
+function isStarted(game) { return new Date() > game.deadline; } // Tipps anderer sichtbar nach Deadline
 
 function tend(h, a) {
   const hi = parseInt(h), ai = parseInt(a);
@@ -240,32 +245,37 @@ function showScreen(name) {
 
 async function renderGamesPreview() {
   const res = await db.from('ergebnisse').select('*');
-  allResults = {};
-  if (res.data) res.data.forEach(r => allResults[r.spiel_id] = r);
-  const el = document.getElementById('games-preview');
-  el.innerHTML = GAMES.map(g => {
-    const r = allResults[g.id];
-    const locked = isLocked(g);
-    return `<div class="card">
-      <div class="game-meta">
-        <span>${g.date} • ${g.time} Uhr • ${g.venue}</span>
-        <span class="deadline-badge ${locked?'deadline-closed':'deadline-open'}">${locked?'🔒 Gesperrt':'🟢 Offen'}</span>
-      </div>
-      <div class="game-teams">
-        <span>${g.hf} ${g.home}</span>
-        <span style="color:rgba(255,255,255,0.3);font-size:14px">vs</span>
-        <span>${g.af} ${g.away}</span>
-        ${r ? `<span class="result-badge" style="margin-left:auto">${r.ergebnis_home}:${r.ergebnis_away}</span>` : ''}
-      </div>
-    </div>`;
-  }).join('');
+  const results = {};
+  if (res.data) res.data.forEach(r => results[r.spiel_id] = r);
+
+  const phases = [...new Set(GAMES.map(g => g.phase))];
+  let html = '';
+  phases.forEach(phase => {
+    html += `<div class="phase-label">📋 ${phase}</div>`;
+    GAMES.filter(g => g.phase === phase).forEach(g => {
+      const r = results[g.id];
+      const locked = isLocked(g);
+      html += `<div class="card">
+        <div class="game-meta">
+          <span>${g.date} • ${g.time} Uhr • ${g.venue}</span>
+          <span class="deadline-badge ${locked?'deadline-closed':'deadline-open'}">${locked?'🔒 Gestartet':'🟢 Offen'}</span>
+        </div>
+        <div class="game-teams">
+          <span>${g.hf} ${g.home}</span>
+          <span style="color:rgba(255,255,255,0.3);font-size:14px">vs</span>
+          <span>${g.af} ${g.away}</span>
+          ${r ? `<span class="result-badge" style="margin-left:auto">${r.ergebnis_home}:${r.ergebnis_away}</span>` : ''}
+        </div>
+      </div>`;
+    });
+  });
+  document.getElementById('games-preview').innerHTML = html;
 }
 
 async function startTipping() {
   const name = document.getElementById('name-input').value.trim();
   if (!name || name.length < 2) { showToast('Bitte einen Namen eingeben!', 'error'); return; }
   currentPlayer = name;
-  // load existing tips
   const res = await db.from('tipps').select('*').eq('name', name);
   currentTips = {};
   if (res.data) res.data.forEach(t => currentTips[t.spiel_id] = { home: t.tipp_home, away: t.tipp_away });
@@ -275,50 +285,55 @@ async function startTipping() {
 
 function renderTipScreen() {
   document.getElementById('tip-greeting').textContent = `Hey ${currentPlayer}! 👋`;
-  const el = document.getElementById('tip-games');
-  el.innerHTML = GAMES.map(g => {
-    const t = currentTips[g.id] || { home: '', away: '' };
-    const locked = isLocked(g);
-    const tendency = tend(t.home, t.away);
-    return `<div class="card" style="padding:18px;margin-bottom:14px">
-      <div class="game-meta">
-        <span>Spiel ${g.id} • ${g.date} ${g.time} Uhr • ${g.venue}</span>
-      </div>
-      <div class="tip-row">
-        <div class="tip-team">
-          <div class="flag">${g.hf}</div>
-          <div class="name">${g.home}</div>
-          <input type="number" min="0" max="20" value="${t.home}" ${locked?'disabled':''}
-            oninput="updateTip(${g.id},'home',this.value)" id="tip-${g.id}-home">
+  const phases = [...new Set(GAMES.map(g => g.phase))];
+  let html = '';
+  phases.forEach(phase => {
+    html += `<div class="phase-label">📋 ${phase}</div>`;
+    GAMES.filter(g => g.phase === phase).forEach(g => {
+      const t = currentTips[g.id] || { home: '', away: '' };
+      const locked = isLocked(g);
+      const tendency = tend(t.home, t.away);
+      html += `<div class="card" style="padding:18px;margin-bottom:14px">
+        <div class="game-meta">
+          <span>Spiel ${g.id} • ${g.date} ${g.time} Uhr • ${g.venue}</span>
         </div>
-        <div class="tip-sep">
-          <div style="font-size:20px;color:rgba(255,255,255,0.3)">:</div>
-          ${tendency ? `<div class="tendency">${tendency}</div>` : ''}
+        <div class="tip-row">
+          <div class="tip-team">
+            <div class="flag">${g.hf}</div>
+            <div class="name">${g.home}</div>
+            <input type="number" min="0" max="20" value="${t.home}" ${locked?'disabled':''}
+              oninput="updateTip(${g.id},'home',this.value)" id="tip-${g.id}-home">
+          </div>
+          <div class="tip-sep">
+            <div style="font-size:20px;color:rgba(255,255,255,0.3)">:</div>
+            ${tendency ? `<div class="tendency">${tendency}</div>` : ''}
+          </div>
+          <div class="tip-team">
+            <div class="flag">${g.af}</div>
+            <div class="name">${g.away}</div>
+            <input type="number" min="0" max="20" value="${t.away}" ${locked?'disabled':''}
+              oninput="updateTip(${g.id},'away',this.value)" id="tip-${g.id}-away">
+          </div>
         </div>
-        <div class="tip-team">
-          <div class="flag">${g.af}</div>
-          <div class="name">${g.away}</div>
-          <input type="number" min="0" max="20" value="${t.away}" ${locked?'disabled':''}
-            oninput="updateTip(${g.id},'away',this.value)" id="tip-${g.id}-away">
-        </div>
-      </div>
-      ${locked ? '<div class="locked-msg">🔒 Tipp gesperrt – Spiel beginnt bald!</div>' : ''}
-    </div>`;
-  }).join('');
+        ${locked ? '<div class="locked-msg">🔒 Tipp gesperrt – Spiel hat begonnen!</div>' : ''}
+      </div>`;
+    });
+  });
+  document.getElementById('tip-games').innerHTML = html;
 }
 
 function updateTip(gameId, side, val) {
   if (!currentTips[gameId]) currentTips[gameId] = { home: '', away: '' };
   currentTips[gameId][side] = val;
-  // update tendency live
   const t = currentTips[gameId];
   const tendency = tend(t.home, t.away);
-  const sep = document.querySelectorAll('.tip-sep')[gameId-1];
-  if (sep) {
-    const existing = sep.querySelector('.tendency');
+  const seps = document.querySelectorAll('.tip-sep');
+  const gameIndex = GAMES.findIndex(g => g.id === gameId);
+  if (seps[gameIndex]) {
+    const existing = seps[gameIndex].querySelector('.tendency');
     if (tendency) {
       if (existing) existing.textContent = tendency;
-      else sep.innerHTML += `<div class="tendency">${tendency}</div>`;
+      else seps[gameIndex].innerHTML += `<div class="tendency">${tendency}</div>`;
     } else if (existing) existing.remove();
   }
 }
@@ -354,16 +369,22 @@ async function loadLeaderboard() {
     if (!playerMap[t.name]) playerMap[t.name] = {};
     playerMap[t.name][t.spiel_id] = t;
   });
+
   const board = Object.entries(playerMap).map(([name, tips]) => {
     let total = 0, details = {};
     GAMES.forEach(g => {
       const t = tips[g.id], r = results[g.id];
+      const started = isStarted(g);
       if (t && r) {
         const pts = calcPts(t.tipp_home, t.tipp_away, r.ergebnis_home, r.ergebnis_away);
-        details[g.id] = { pts, th: t.tipp_home, ta: t.tipp_away };
+        details[g.id] = { pts, th: t.tipp_home, ta: t.tipp_away, visible: true };
         if (pts !== null) total += pts;
-      } else if (t) {
-        details[g.id] = { pts: null, th: t.tipp_home, ta: t.tipp_away };
+      } else if (t && started) {
+        // Spiel gestartet aber noch kein Ergebnis → Tipp sichtbar, keine Punkte
+        details[g.id] = { pts: null, th: t.tipp_home, ta: t.tipp_away, visible: true };
+      } else if (t && !started) {
+        // Spiel noch nicht gestartet → Tipp versteckt
+        details[g.id] = { pts: null, th: null, ta: null, visible: false };
       }
     });
     return { name, total, details };
@@ -384,6 +405,7 @@ async function loadLeaderboard() {
           ${GAMES.map(g => {
             const d = p.details[g.id];
             if (!d) return `<span class="tip-chip">${g.hf}?:?${g.af}</span>`;
+            if (!d.visible) return `<span class="tip-chip hidden">${g.hf}🔒${g.af}</span>`;
             const cls = d.pts===3?'pts3':d.pts===1?'pts1':d.pts===0?'pts0':'';
             return `<span class="tip-chip ${cls}">${g.hf}${d.th}:${d.ta}${g.af}${d.pts!==null?' +'+d.pts:''}</span>`;
           }).join('')}
@@ -406,19 +428,25 @@ async function renderAdminGames() {
   const res = await db.from('ergebnisse').select('*');
   const results = {};
   if (res.data) res.data.forEach(r => results[r.spiel_id] = r);
-  document.getElementById('admin-games').innerHTML = GAMES.map(g => {
-    const r = results[g.id] || {};
-    return `<div class="card" style="padding:16px;margin-bottom:12px">
-      <div class="game-meta"><span>${g.date} • ${g.home} vs ${g.away}</span></div>
-      <div class="tip-row">
-        <span style="font-size:16px">${g.hf}</span>
-        <input type="number" min="0" max="20" value="${r.ergebnis_home??''}" placeholder="–" id="res-${g.id}-home">
-        <span style="color:rgba(255,255,255,0.3)">:</span>
-        <input type="number" min="0" max="20" value="${r.ergebnis_away??''}" placeholder="–" id="res-${g.id}-away">
-        <span style="font-size:16px">${g.af}</span>
-      </div>
-    </div>`;
-  }).join('');
+  const phases = [...new Set(GAMES.map(g => g.phase))];
+  let html = '';
+  phases.forEach(phase => {
+    html += `<div class="phase-label">📋 ${phase}</div>`;
+    GAMES.filter(g => g.phase === phase).forEach(g => {
+      const r = results[g.id] || {};
+      html += `<div class="card" style="padding:16px;margin-bottom:12px">
+        <div class="game-meta"><span>${g.date} • ${g.home} vs ${g.away}</span></div>
+        <div class="tip-row">
+          <span style="font-size:16px">${g.hf}</span>
+          <input type="number" min="0" max="20" value="${r.ergebnis_home??''}" placeholder="–" id="res-${g.id}-home">
+          <span style="color:rgba(255,255,255,0.3)">:</span>
+          <input type="number" min="0" max="20" value="${r.ergebnis_away??''}" placeholder="–" id="res-${g.id}-away">
+          <span style="font-size:16px">${g.af}</span>
+        </div>
+      </div>`;
+    });
+  });
+  document.getElementById('admin-games').innerHTML = html;
 }
 
 async function saveResults() {
@@ -431,7 +459,6 @@ async function saveResults() {
     }, { onConflict: 'spiel_id' });
   }
   showToast('Ergebnisse gespeichert! ✅');
-  setTimeout(() => loadLeaderboard(), 500);
 }
 
 // Init
