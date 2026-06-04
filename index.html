@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WM Tippspiel 2026 🏆</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0a0a1a 0%, #0d1f0d 50%, #1a0a0a 100%);
+    font-family: 'Segoe UI', sans-serif;
+    color: #fff;
+  }
+  .bg-deco {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none;
+    background: radial-gradient(ellipse at 20% 20%, rgba(0,80,0,0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(180,0,0,0.1) 0%, transparent 50%);
+    z-index: 0;
+  }
+  .wrap { position: relative; z-index: 1; max-width: 520px; margin: 0 auto; padding: 0 16px 60px; }
+  .header { text-align: center; padding: 32px 0 24px; }
+  .header .emoji { font-size: 48px; margin-bottom: 4px; }
+  .header h1 {
+    font-size: 28px; font-weight: 900; margin: 0 0 4px;
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .header p { color: rgba(255,255,255,0.5); font-size: 13px; }
+  .nav { display: flex; gap: 8px; margin-bottom: 20px; justify-content: center; }
+  .nav button {
+    padding: 8px 16px; border-radius: 20px; border: none; cursor: pointer;
+    font-size: 13px; font-weight: 600; transition: all 0.2s;
+    background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7);
+  }
+  .nav button.active {
+    background: linear-gradient(135deg, #FFD700, #FFA500); color: #000;
+  }
+  .card {
+    background: rgba(255,255,255,0.05); border-radius: 16px;
+    padding: 14px 18px; margin-bottom: 10px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .card-gold { border-color: rgba(255,215,0,0.2); }
+  .game-meta { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+  .game-teams { display: flex; align-items: center; gap: 12px; font-size: 18px; font-weight: 700; }
+  .result-badge {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #000; font-weight: 800; border-radius: 8px; padding: 2px 10px; font-size: 14px;
+  }
+  .deadline-badge {
+    font-size: 11px; padding: 2px 8px; border-radius: 6px; font-weight: 700;
+  }
+  .deadline-open { background: rgba(39,174,96,0.2); color: #2ecc71; }
+  .deadline-closed { background: rgba(192,57,43,0.2); color: #e74c3c; }
+  input[type=text], input[type=password] {
+    width: 100%; padding: 14px 18px; border-radius: 12px;
+    border: 2px solid rgba(255,215,0,0.3);
+    background: rgba(255,255,255,0.08); color: #fff;
+    font-size: 16px; outline: none; margin-bottom: 12px;
+  }
+  input[type=number] {
+    width: 60px; height: 54px; text-align: center; font-size: 28px; font-weight: 800;
+    border-radius: 12px; border: 2px solid rgba(255,215,0,0.4);
+    background: rgba(255,255,255,0.1); color: #FFD700; outline: none;
+  }
+  input:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn {
+    width: 100%; padding: 14px; border-radius: 12px; border: none;
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #000; font-weight: 800; font-size: 16px; cursor: pointer; margin-bottom: 8px;
+  }
+  .btn-ghost {
+    width: 100%; padding: 12px; border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: transparent; color: rgba(255,255,255,0.6);
+    font-size: 14px; cursor: pointer; margin-bottom: 8px;
+  }
+  .tip-row { display: flex; align-items: center; gap: 10px; }
+  .tip-team { flex: 1; text-align: center; }
+  .tip-team .flag { font-size: 22px; margin-bottom: 4px; }
+  .tip-team .name { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+  .tip-sep { text-align: center; min-width: 40px; }
+  .tendency { font-size: 10px; color: #FFD700; font-weight: 700; background: rgba(255,215,0,0.1); border-radius: 6px; padding: 2px 6px; margin-top: 4px; }
+  .locked-msg { text-align: center; color: #e74c3c; font-size: 13px; padding: 10px; background: rgba(192,57,43,0.1); border-radius: 8px; margin-top: 8px; }
+  .board-row {
+    background: rgba(255,255,255,0.04); border-radius: 16px;
+    padding: 16px 18px; margin-bottom: 10px;
+    border: 1px solid rgba(255,255,255,0.07);
+    display: flex; align-items: center; gap: 14px;
+  }
+  .board-row.first {
+    background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,165,0,0.08));
+    border-color: rgba(255,215,0,0.4);
+  }
+  .board-rank { font-size: 24px; min-width: 36px; text-align: center; }
+  .board-name { font-weight: 700; font-size: 16px; margin-bottom: 6px; }
+  .board-tips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tip-chip {
+    font-size: 11px; padding: 3px 8px; border-radius: 6px;
+    background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.4);
+  }
+  .tip-chip.pts3 { background: rgba(39,174,96,0.3); color: #2ecc71; }
+  .tip-chip.pts1 { background: rgba(255,165,0,0.3); color: #FFA500; }
+  .tip-chip.pts0 { background: rgba(192,57,43,0.3); color: #e74c3c; }
+  .board-pts { font-size: 28px; font-weight: 900; }
+  .toast {
+    position: fixed; top: 24px; left: 50%; transform: translateX(-50%);
+    padding: 12px 28px; border-radius: 50px;
+    font-weight: 700; font-size: 15px; z-index: 999;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    transition: opacity 0.3s;
+  }
+  .toast.success { background: #27ae60; color: #fff; }
+  .toast.error { background: #c0392b; color: #fff; }
+  .loading { text-align: center; padding: 40px; color: rgba(255,255,255,0.4); font-size: 14px; }
+  .screen { display: none; }
+  .screen.active { display: block; }
+</style>
+</head>
+<body>
+<div class="bg-deco"></div>
+<div class="wrap">
+  <div class="header">
+    <div class="emoji">🏆</div>
+    <h1>WM Tippspiel 2026</h1>
+    <p>Nur für die DFB-Spiele 🇩🇪</p>
+  </div>
+
+  <div class="nav" id="nav" style="display:none">
+    <button class="active" onclick="showScreen('home')">✏️ Tippen</button>
+    <button onclick="showScreen('leaderboard')">🏆 Tabelle</button>
+    <button onclick="showScreen('admin')">⚙️ Ergebnisse</button>
+  </div>
+
+  <!-- HOME -->
+  <div id="screen-home" class="screen active">
+    <div id="games-preview"></div>
+    <div class="card card-gold" style="padding:24px">
+      <h2 style="margin-bottom:16px;font-size:18px">Jetzt mitmachen!</h2>
+      <input type="text" id="name-input" placeholder="Dein Name..." onkeydown="if(event.key==='Enter')startTipping()">
+      <button class="btn" onclick="startTipping()">Tipps abgeben ⚽</button>
+      <button class="btn-ghost" onclick="showScreen('leaderboard')">🏆 Zur Tabelle</button>
+    </div>
+  </div>
+
+  <!-- TIP -->
+  <div id="screen-tip" class="screen">
+    <h2 style="text-align:center;margin-bottom:8px;font-size:20px" id="tip-greeting"></h2>
+    <p style="text-align:center;color:rgba(255,255,255,0.5);font-size:13px;margin-bottom:20px">3 Pkt = richtiges Ergebnis • 1 Pkt = richtige Tendenz</p>
+    <div id="tip-games"></div>
+    <button class="btn" onclick="saveTips()">✅ Tipps speichern</button>
+    <button class="btn-ghost" onclick="showScreen('home')">← Zurück</button>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div id="screen-leaderboard" class="screen">
+    <h2 style="text-align:center;margin-bottom:20px;font-size:22px">🏆 Rangliste</h2>
+    <div id="board-content"><div class="loading">Lade Daten...</div></div>
+    <button class="btn" onclick="showScreen('home')" style="margin-top:12px">✏️ Tipps abgeben</button>
+  </div>
+
+  <!-- ADMIN -->
+  <div id="screen-admin" class="screen">
+    <h2 style="text-align:center;margin-bottom:4px;font-size:22px">⚙️ Ergebnisse eintragen</h2>
+    <p style="text-align:center;color:rgba(255,255,255,0.4);font-size:12px;margin-bottom:20px">Nur für den Admin</p>
+    <div id="admin-lock">
+      <div class="card card-gold" style="padding:24px">
+        <input type="password" id="admin-pw" placeholder="Admin-Passwort..." onkeydown="if(event.key==='Enter')unlockAdmin()">
+        <button class="btn" onclick="unlockAdmin()">Entsperren 🔓</button>
+        <p style="text-align:center;color:rgba(255,255,255,0.3);font-size:11px;margin-top:8px">Standard: dfb2026</p>
+      </div>
+    </div>
+    <div id="admin-content" style="display:none">
+      <div id="admin-games"></div>
+      <button class="btn" onclick="saveResults()">💾 Ergebnisse speichern</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast" style="display:none"></div>
+
+<script>
+const SUPABASE_URL = 'https://gucqaadufjsaskzgsrrm.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1Y3FhYWR1ZmpzYXNremdzcnJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzMzNzQsImV4cCI6MjA5NjE0OTM3NH0.ScH49H55N6-iOXYmrlcQt2s9kRWwKTK6xngitLsBAxg';
+const ADMIN_PW = 'dfb2026';
+
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const GAMES = [
+  { id: 1, date: '14.06.2026', time: '19:00', home: 'Deutschland', away: 'Curaçao', hf: '🇩🇪', af: '🇨🇼', venue: 'Houston',
+    deadline: new Date('2026-06-14T16:50:00Z') },
+  { id: 2, date: '20.06.2026', time: '22:00', home: 'Deutschland', away: 'Elfenbeinküste', hf: '🇩🇪', af: '🇨🇮', venue: 'Toronto',
+    deadline: new Date('2026-06-20T19:50:00Z') },
+  { id: 3, date: '25.06.2026', time: '22:00', home: 'Deutschland', away: 'Ecuador', hf: '🇩🇪', af: '🇪🇨', venue: 'New Jersey',
+    deadline: new Date('2026-06-25T19:50:00Z') },
+];
+
+let currentPlayer = '';
+let currentTips = {};
+let allResults = {};
+let allTips = [];
+
+function isLocked(game) { return new Date() > game.deadline; }
+
+function tend(h, a) {
+  const hi = parseInt(h), ai = parseInt(a);
+  if (isNaN(hi) || isNaN(ai) || h==='' || a==='') return null;
+  if (hi > ai) return 'Sieg 🇩🇪';
+  if (hi < ai) return 'Niederlage';
+  return 'Unentschieden';
+}
+
+function calcPts(th, ta, rh, ra) {
+  if (rh===null || ra===null) return null;
+  if (th===rh && ta===ra) return 3;
+  const tt = th>ta?'H':th<ta?'A':'D', rt = rh>ra?'H':rh<ra?'A':'D';
+  if (tt===rt) return 1;
+  return 0;
+}
+
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast '+type; t.style.display='block';
+  setTimeout(() => t.style.display='none', 2800);
+}
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  document.querySelectorAll('.nav button').forEach((b,i) => {
+    b.classList.toggle('active', ['home','leaderboard','admin'][i]===name);
+  });
+  document.getElementById('nav').style.display = 'flex';
+  if (name==='leaderboard') loadLeaderboard();
+  if (name==='home') renderGamesPreview();
+}
+
+async function renderGamesPreview() {
+  const res = await db.from('ergebnisse').select('*');
+  allResults = {};
+  if (res.data) res.data.forEach(r => allResults[r.spiel_id] = r);
+  const el = document.getElementById('games-preview');
+  el.innerHTML = GAMES.map(g => {
+    const r = allResults[g.id];
+    const locked = isLocked(g);
+    return `<div class="card">
+      <div class="game-meta">
+        <span>${g.date} • ${g.time} Uhr • ${g.venue}</span>
+        <span class="deadline-badge ${locked?'deadline-closed':'deadline-open'}">${locked?'🔒 Gesperrt':'🟢 Offen'}</span>
+      </div>
+      <div class="game-teams">
+        <span>${g.hf} ${g.home}</span>
+        <span style="color:rgba(255,255,255,0.3);font-size:14px">vs</span>
+        <span>${g.af} ${g.away}</span>
+        ${r ? `<span class="result-badge" style="margin-left:auto">${r.ergebnis_home}:${r.ergebnis_away}</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function startTipping() {
+  const name = document.getElementById('name-input').value.trim();
+  if (!name || name.length < 2) { showToast('Bitte einen Namen eingeben!', 'error'); return; }
+  currentPlayer = name;
+  // load existing tips
+  const res = await db.from('tipps').select('*').eq('name', name);
+  currentTips = {};
+  if (res.data) res.data.forEach(t => currentTips[t.spiel_id] = { home: t.tipp_home, away: t.tipp_away });
+  renderTipScreen();
+  showScreen('tip');
+}
+
+function renderTipScreen() {
+  document.getElementById('tip-greeting').textContent = `Hey ${currentPlayer}! 👋`;
+  const el = document.getElementById('tip-games');
+  el.innerHTML = GAMES.map(g => {
+    const t = currentTips[g.id] || { home: '', away: '' };
+    const locked = isLocked(g);
+    const tendency = tend(t.home, t.away);
+    return `<div class="card" style="padding:18px;margin-bottom:14px">
+      <div class="game-meta">
+        <span>Spiel ${g.id} • ${g.date} ${g.time} Uhr • ${g.venue}</span>
+      </div>
+      <div class="tip-row">
+        <div class="tip-team">
+          <div class="flag">${g.hf}</div>
+          <div class="name">${g.home}</div>
+          <input type="number" min="0" max="20" value="${t.home}" ${locked?'disabled':''}
+            oninput="updateTip(${g.id},'home',this.value)" id="tip-${g.id}-home">
+        </div>
+        <div class="tip-sep">
+          <div style="font-size:20px;color:rgba(255,255,255,0.3)">:</div>
+          ${tendency ? `<div class="tendency">${tendency}</div>` : ''}
+        </div>
+        <div class="tip-team">
+          <div class="flag">${g.af}</div>
+          <div class="name">${g.away}</div>
+          <input type="number" min="0" max="20" value="${t.away}" ${locked?'disabled':''}
+            oninput="updateTip(${g.id},'away',this.value)" id="tip-${g.id}-away">
+        </div>
+      </div>
+      ${locked ? '<div class="locked-msg">🔒 Tipp gesperrt – Spiel beginnt bald!</div>' : ''}
+    </div>`;
+  }).join('');
+}
+
+function updateTip(gameId, side, val) {
+  if (!currentTips[gameId]) currentTips[gameId] = { home: '', away: '' };
+  currentTips[gameId][side] = val;
+  // update tendency live
+  const t = currentTips[gameId];
+  const tendency = tend(t.home, t.away);
+  const sep = document.querySelectorAll('.tip-sep')[gameId-1];
+  if (sep) {
+    const existing = sep.querySelector('.tendency');
+    if (tendency) {
+      if (existing) existing.textContent = tendency;
+      else sep.innerHTML += `<div class="tendency">${tendency}</div>`;
+    } else if (existing) existing.remove();
+  }
+}
+
+async function saveTips() {
+  let saved = 0;
+  for (const g of GAMES) {
+    if (isLocked(g)) continue;
+    const t = currentTips[g.id];
+    if (!t || t.home==='' || t.away==='' || isNaN(parseInt(t.home)) || isNaN(parseInt(t.away))) {
+      showToast(`Bitte Spiel ${g.id} tippen!`, 'error'); return;
+    }
+    const { error } = await db.from('tipps').upsert({
+      name: currentPlayer, spiel_id: g.id,
+      tipp_home: parseInt(t.home), tipp_away: parseInt(t.away)
+    }, { onConflict: 'name,spiel_id' });
+    if (!error) saved++;
+  }
+  showToast(`${saved} Tipp(s) gespeichert! ⚽`);
+  setTimeout(() => showScreen('leaderboard'), 1000);
+}
+
+async function loadLeaderboard() {
+  document.getElementById('board-content').innerHTML = '<div class="loading">Lade Rangliste...</div>';
+  const [tRes, rRes] = await Promise.all([
+    db.from('tipps').select('*'),
+    db.from('ergebnisse').select('*')
+  ]);
+  const results = {};
+  if (rRes.data) rRes.data.forEach(r => results[r.spiel_id] = r);
+  const playerMap = {};
+  if (tRes.data) tRes.data.forEach(t => {
+    if (!playerMap[t.name]) playerMap[t.name] = {};
+    playerMap[t.name][t.spiel_id] = t;
+  });
+  const board = Object.entries(playerMap).map(([name, tips]) => {
+    let total = 0, details = {};
+    GAMES.forEach(g => {
+      const t = tips[g.id], r = results[g.id];
+      if (t && r) {
+        const pts = calcPts(t.tipp_home, t.tipp_away, r.ergebnis_home, r.ergebnis_away);
+        details[g.id] = { pts, th: t.tipp_home, ta: t.tipp_away };
+        if (pts !== null) total += pts;
+      } else if (t) {
+        details[g.id] = { pts: null, th: t.tipp_home, ta: t.tipp_away };
+      }
+    });
+    return { name, total, details };
+  }).sort((a,b) => b.total - a.total);
+
+  if (board.length === 0) {
+    document.getElementById('board-content').innerHTML = '<div class="loading">Noch keine Tipps abgegeben...</div>';
+    return;
+  }
+
+  const medals = ['🥇','🥈','🥉'];
+  document.getElementById('board-content').innerHTML = board.map((p,i) => `
+    <div class="board-row ${i===0?'first':''}">
+      <div class="board-rank">${medals[i] || '#'+(i+1)}</div>
+      <div style="flex:1">
+        <div class="board-name">${p.name}</div>
+        <div class="board-tips">
+          ${GAMES.map(g => {
+            const d = p.details[g.id];
+            if (!d) return `<span class="tip-chip">${g.hf}?:?${g.af}</span>`;
+            const cls = d.pts===3?'pts3':d.pts===1?'pts1':d.pts===0?'pts0':'';
+            return `<span class="tip-chip ${cls}">${g.hf}${d.th}:${d.ta}${g.af}${d.pts!==null?' +'+d.pts:''}</span>`;
+          }).join('')}
+        </div>
+      </div>
+      <div class="board-pts" style="${i===0?'color:#FFD700':''}">${p.total}</div>
+    </div>
+  `).join('');
+}
+
+function unlockAdmin() {
+  const pw = document.getElementById('admin-pw').value;
+  if (pw !== ADMIN_PW) { showToast('Falsches Passwort!', 'error'); return; }
+  document.getElementById('admin-lock').style.display = 'none';
+  document.getElementById('admin-content').style.display = 'block';
+  renderAdminGames();
+}
+
+async function renderAdminGames() {
+  const res = await db.from('ergebnisse').select('*');
+  const results = {};
+  if (res.data) res.data.forEach(r => results[r.spiel_id] = r);
+  document.getElementById('admin-games').innerHTML = GAMES.map(g => {
+    const r = results[g.id] || {};
+    return `<div class="card" style="padding:16px;margin-bottom:12px">
+      <div class="game-meta"><span>${g.date} • ${g.home} vs ${g.away}</span></div>
+      <div class="tip-row">
+        <span style="font-size:16px">${g.hf}</span>
+        <input type="number" min="0" max="20" value="${r.ergebnis_home??''}" placeholder="–" id="res-${g.id}-home">
+        <span style="color:rgba(255,255,255,0.3)">:</span>
+        <input type="number" min="0" max="20" value="${r.ergebnis_away??''}" placeholder="–" id="res-${g.id}-away">
+        <span style="font-size:16px">${g.af}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function saveResults() {
+  for (const g of GAMES) {
+    const h = document.getElementById(`res-${g.id}-home`).value;
+    const a = document.getElementById(`res-${g.id}-away`).value;
+    if (h==='' || a==='') continue;
+    await db.from('ergebnisse').upsert({
+      spiel_id: g.id, ergebnis_home: parseInt(h), ergebnis_away: parseInt(a)
+    }, { onConflict: 'spiel_id' });
+  }
+  showToast('Ergebnisse gespeichert! ✅');
+  setTimeout(() => loadLeaderboard(), 500);
+}
+
+// Init
+renderGamesPreview();
+</script>
+</body>
+</html>
